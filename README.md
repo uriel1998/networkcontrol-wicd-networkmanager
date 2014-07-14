@@ -24,7 +24,7 @@ AND (these are probably already installed or easily available from your package 
 
 OPTIONAL
 
-* [wondershaper](http://www.hecticgeek.com/2012/02/simple-traffic-shaping-ubuntu-linux/) [modify for LAN use](http://ideatrash.net/2014/07/making-wondershaper-play-nice-on-lan.html)
+* [wondershaper](http://www.hecticgeek.com/2012/02/simple-traffic-shaping-ubuntu-linux/) Here's how you [modify it for LAN use](http://ideatrash.net/2014/07/making-wondershaper-play-nice-on-lan.html)
 * [InSync](https://www.insynchq.com/r/109458505937185551876)
 * [Dropbox](http://db.tt/PeYcFIot)
 * ...and whatever else you would need in some locations but not others.
