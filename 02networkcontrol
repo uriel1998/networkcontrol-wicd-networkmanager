@@ -1,0 +1,180 @@
+#!/bin/bash
+#
+# 	Network up/down control center for network-manager and WICD
+#   https://github.com/uriel1998/networkcontrol-wicd-networkmanager
+#   Please see the README there for installation instructions and credits
+#   
+########################################################################
+
+########################################################################
+# Variable Assignation
+########################################################################
+# $1 is the interface - though tempted to use interface=$(ip route | head -1 | awk '{print $5}')
+# don't do it.  Network-manager in particular likes reporting more than one active connection through iptools
+# $2 is up or down - passed by network-manager or the scripts provided
+# $3 is the essid of the wireless network if you're using WICD; we use iwgetid to backfill for network-manager
+
+interface="$1"
+if [ "$3" == "" ]; then
+	essid=$(iwgetid -r)
+else
+	essid="$3"
+fi
+
+
+
+if [ ! -d "$TMPDIR" ]; then
+	scratch=$(mktemp)
+	export TMPDIR=$(dirname scratch)
+fi
+
+delay=$(grep -m 1 -o "latencydelay .*" ~/.config/networkcontrol.conf | grep -o " .*" | cut -c 2-)
+separator=$(grep -m 1 -o "separator .*" ~/.config/networkcontrol.conf | grep -o " .*" | cut -c 2-)
+
+########################################################################
+# Checking for rapid disconnect and reconnect
+########################################################################
+
+if [ -f "$TMPDIR/networkcontrol.tmp" ]; then
+	sTwo=$(head -1 "$TMPDIR/networkcontrol.tmp")
+	sInterface=$(echo "$sTwo" | awk -F "$separator" '{print $2}')
+	sEssid=$(echo "$sTwo" | awk -F "$separator" '{print $3}')
+	sMAC=$(echo "$sTwo" | awk -F "$separator" '{print $4}')
+fi
+
+case "$2" in 
+	########################################################################
+	# Taking Network Down
+	########################################################################
+	down)	
+		echo "$1 $sInterface"
+		if [ "$1" == "$sInterface" ]; then
+			echo "Beginning clean shutdown sequence."
+			sleep "$delay"
+			sOne=$(ip route | head -1 | awk '{print $5}')
+			# Is the network really, truly down?
+			if [ "$sOne" == "" ]; then
+					
+				# because passing parameters back and forth doesn't work very well
+				# I have wondershaper here separately since we need to clear from
+				# the last used network/interface
+				wshaperpath=$(which wondershaper)
+				if [ -f $wshaperpath ];then			
+					sudo /sbin/wondershaper clear "$sInterface"
+				fi 
+				
+				# reading from configuration file
+				while read line; do
+					if [ "$line" == "" ];then  #first blank line in config
+						read line;
+						if [ "$line" == "@@shutdown" ];then
+							read line;
+							while [ "$line" != "" ]; do
+								$line &
+								read line;								
+							done
+						fi
+					fi
+				done <~/.config/networkcontrol.conf 				
+				rm "$TMPDIR/networkcontrol.tmp"
+				exit 0
+			else
+				echo "Network is up; controller is exiting."
+				exit 253
+			fi
+		else
+				echo "You are trying to take down a network that is not currently up."
+		fi
+		;;
+	########################################################################
+	# Putting Network Up
+	########################################################################		
+	up)
+		#if [ "$interface" == "$sInterface" ]; then
+		#	echo "Interface already up."
+		#	exit 254
+		#fi
+		#if [ "$essid" == "$sEssid" ]; then
+	#		echo "Interface already up."
+	#		exit 254	
+	#	fi
+		gateway=$(ip route show 0.0.0.0/0 | awk '{print $3}')	
+		mactest=$(arp -n -a $gateway | grep "$interface" | awk '{print $4}')
+		# You need the grep command in there because NM will attach to both if it can, and provide a crappy return
+		essid=$(iwgetid -r)
+		# WICD calls the scripts upon connect as opposed to when IP addresses are assigned, etc.
+		# Therefore, this waits until it gets a gateway.  Failing that, it tries to match among a wireless essid
+		# The iwgetid command should also help with that.
+		# Currently configured to try ten times, once every ten seconds.
+
+		counter=10
+		while [ "$mactest" == "" -a "$essid" == "" ]; do
+			sleep 10
+			gateway=$(ip route show 0.0.0.0/0 | awk '{print $3}')	
+			mactest=$(arp -n -a "$gateway" | grep "$interface" | awk '{print $4}')
+			mactest2=$(arp -n -a "$gateway" | grep "$interface" )
+			essid=$(iwgetid -r)
+			counter--;
+			if [ counter = 0 ];then
+						# to break the loop.  Should be 100 seconds post connect at this point.
+						essid="default"
+						mactest="00:00:00:00:00:00"
+			fi
+		done
+		# reading from configuration file
+		# is there more than one config for the network?
+		ssidcount=$(grep -c "$separator$essid" ~/.config/networkcontrol.conf)
+		maccount=$(grep -c "$separator$mactest" ~/.config/networkcontrol.conf)
+		matchcount=0
+		if [ $maccount -gt 1 -o $ssidcount -gt 1 ];then
+			matchcount=2
+		elif [ $maccount -gt 0 -o $ssidcount -gt 0 ];then
+			matchcount=1
+		else
+			matchcount=0
+		fi
+		# The logic here is that if grep shows up nothing, then we quit.
+		# If there's one match, then it doesn't matter if the interface matches or not
+		# If there's MORE than one match, our user has separate configs for wired and non-wired
+		if [ $matchcount -gt 0 ];then
+			while read line; do
+				if [ "$line" == "@@interface@@eSSID@@macaddress" ];then  #first interface line in config
+					read line;
+						case $matchcount in
+							2) 	if [[ "$line" =~ "$separator$essid" ]] ||  [[ "$line" =~ "$separator$mactest" ]]; then 
+									if [[ "$line" =~ "$separator$interface" ]]; then
+										matchcount=5
+									fi
+								fi
+								;;
+							1) 	if [[ "$line" =~ "$separator$essid" ]] || [[ "$line" =~ "$separator$mactest" ]]; then
+									matchcount=5
+								fi
+								;;
+							*) ;;
+						esac
+						if [ "$matchcount" == "5" ];then
+							if [ "$essid" == "" ];then
+								# Let's give it the assigned one for completeness' sake
+								essid=$(echo "$line" | awk -F "$separator" '{print $3}')
+							fi
+						
+						#echo "Connected to $essid on $mactest and conducting startup tasks."
+						logger "Connected to $essid on $mactest and conducting startup tasks." 
+						read line;
+						while [[ ! "$line" =~ "$separator" ]]; do
+							$line &
+							read line;								
+						done
+					fi
+				fi
+			done <~/.config/networkcontrol.conf 	
+			echo "$separator$interface$separator$essid$separator$mactest" > "$TMPDIR/networkcontrol.tmp"
+			exit 0		
+		fi
+		logger "Connected to unconfigured network $essid on $mactest" 
+		echo "$separator$interface$separator$essid$separator$mactest" > "$TMPDIR/networkcontrol.tmp"
+		;;
+	#bad variable below here
+	*);;	
+esac
