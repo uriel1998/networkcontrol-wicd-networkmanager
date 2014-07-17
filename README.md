@@ -89,6 +89,7 @@ Again, the separator character(s) can be anything you like - they just can't app
 	chmod +x ~/scripts/02networkcontrol
 	sudo ln -s ~/scripts/02networkcontrol /usr/local/bin
 	cp ./networkcontrol.conf ~/.config
+	sudo ln -s ~/.config/networkcontrol.conf /etc
 	chmod +x up.sh
 	sudo mkdir -p /etc/wicd/scripts/preconnect
 	sudo cp up.sh /etc/wicd/scripts/preconnect
@@ -102,6 +103,8 @@ Again, the separator character(s) can be anything you like - they just can't app
 	cp ./02networkcontrol ~/scripts
 	chmod +x ~/scripts/02networkcontrol
 	sudo ln -s ~/scripts/02networkcontrol /etc/NetworkManager/dispatcher.d
+	cp ./networkcontrol.conf ~/.config	
+	sudo ln -s ~/.config/networkcontrol.conf /etc
 	
 # One-Liners
 
