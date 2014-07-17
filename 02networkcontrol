@@ -28,8 +28,8 @@ if [ ! -d "$TMPDIR" ]; then
 	export TMPDIR=$(dirname scratch)
 fi
 
-delay=$(grep -m 1 -o "latencydelay .*" ~/.config/networkcontrol.conf | grep -o " .*" | cut -c 2-)
-separator=$(grep -m 1 -o "separator .*" ~/.config/networkcontrol.conf | grep -o " .*" | cut -c 2-)
+delay=$(grep -m 1 -o "latencydelay .*" /etc/networkcontrol.conf | grep -o " .*" | cut -c 2-)
+separator=$(grep -m 1 -o "separator .*" /etc/networkcontrol.conf | grep -o " .*" | cut -c 2-)
 
 ########################################################################
 # Checking for rapid disconnect and reconnect
@@ -49,8 +49,9 @@ case "$2" in
 	down)	
 		echo "$1 $sInterface"
 		if [ "$1" == "$sInterface" ]; then
-			echo "Beginning clean shutdown sequence."
+			logger "Beginning clean shutdown sequence."
 			sleep "$delay"
+			logger "Running clean shutdown sequence."
 			sOne=$(ip route | head -1 | awk '{print $5}')
 			# Is the network really, truly down?
 			if [ "$sOne" == "" ]; then
@@ -75,21 +76,22 @@ case "$2" in
 							done
 						fi
 					fi
-				done <~/.config/networkcontrol.conf 				
+				done <~/etc/networkcontrol.conf 				
 				rm "$TMPDIR/networkcontrol.tmp"
+				logger "Clean shutdown sequence complete."
 				exit 0
 			else
-				echo "Network is up; controller is exiting."
+				logger "Network is up; controller is exiting."
 				exit 253
 			fi
-		else
-				echo "You are trying to take down a network that is not currently up."
+			# Error if there's nothing up; WICD calls this script multiple times, oddly.
 		fi
 		;;
 	########################################################################
 	# Putting Network Up
 	########################################################################		
 	up)
+		logger "Beginning network startup sequence"
 		#if [ "$interface" == "$sInterface" ]; then
 		#	echo "Interface already up."
 		#	exit 254
@@ -123,8 +125,8 @@ case "$2" in
 		done
 		# reading from configuration file
 		# is there more than one config for the network?
-		ssidcount=$(grep -c "$separator$essid" ~/.config/networkcontrol.conf)
-		maccount=$(grep -c "$separator$mactest" ~/.config/networkcontrol.conf)
+		ssidcount=$(grep -c "$separator$essid" /etc/networkcontrol.conf)
+		maccount=$(grep -c "$separator$mactest" /etc/networkcontrol.conf)
 		matchcount=0
 		if [ $maccount -gt 1 -o $ssidcount -gt 1 ];then
 			matchcount=2
@@ -138,7 +140,7 @@ case "$2" in
 		# If there's MORE than one match, our user has separate configs for wired and non-wired
 		if [ $matchcount -gt 0 ];then
 			while read line; do
-				if [ "$line" == "@@interface@@eSSID@@macaddress" ];then  #first interface line in config
+				if [[ "$line" =~ "@@interface" ]];then  #first interface line in config
 					read line;
 						case $matchcount in
 							2) 	if [[ "$line" =~ "$separator$essid" ]] ||  [[ "$line" =~ "$separator$mactest" ]]; then 
@@ -168,7 +170,7 @@ case "$2" in
 						done
 					fi
 				fi
-			done <~/.config/networkcontrol.conf 	
+			done </etc/networkcontrol.conf 	
 			echo "$separator$interface$separator$essid$separator$mactest" > "$TMPDIR/networkcontrol.tmp"
 			exit 0		
 		fi
