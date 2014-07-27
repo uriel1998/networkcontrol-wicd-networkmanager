@@ -81,6 +81,14 @@ If there's only one match for a MAC address or SSID, the program will not pay at
 
 Again, the separator character(s) can be anything you like - they just can't appear in any SSIDs you've configured.
 
+## Debugging - What if my scripts don't run?
+
+If commands are not being executed, your problem may be that WICD (and perhaps network-manager) are running any script commands *as the root user*.  You can get around this by using 
+
+su -l USERNAME /command/to/execute
+
+in networkcontrol.conf
+
 
 ## WICD Installation 
 
