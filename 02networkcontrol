@@ -140,8 +140,7 @@ case "$2" in
 		# If there's MORE than one match, our user has separate configs for wired and non-wired
 		if [ $matchcount -gt 0 ];then
 			while read line; do
-				if [[ "$line" =~ "@@interface" ]];then  #first interface line in config
-					read line;
+				if [[ "$line" =~ "@@$interface" ]];then  #first interface line in config
 						case $matchcount in
 							2) 	if [[ "$line" =~ "$separator$essid" ]] ||  [[ "$line" =~ "$separator$mactest" ]]; then 
 									if [[ "$line" =~ "$separator$interface" ]]; then
@@ -149,7 +148,8 @@ case "$2" in
 									fi
 								fi
 								;;
-							1) 	if [[ "$line" =~ "$separator$essid" ]] || [[ "$line" =~ "$separator$mactest" ]]; then
+							1)  echo "$line"
+								if [[ "$line" =~ "$separator$essid" ]] || [[ "$line" =~ "$separator$mactest" ]]; then
 									matchcount=5
 								fi
 								;;
@@ -170,6 +170,7 @@ case "$2" in
 						done
 					fi
 				fi
+										
 			done </etc/networkcontrol.conf 	
 			echo "$separator$interface$separator$essid$separator$mactest" > "$TMPDIR/networkcontrol.tmp"
 			exit 0		
