@@ -71,8 +71,12 @@ case "$2" in
 						if [ "$line" == "@@shutdown" ];then
 							read line;
 							while [ "$line" != "" ]; do
-								$line &
-								read line;								
+								if [[ ! "$line =~ "#" ]]; then
+									read line;								
+								else
+									$line &
+									read line;								
+								fi
 							done
 						fi
 					fi
