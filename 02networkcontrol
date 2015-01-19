@@ -165,8 +165,12 @@ case "$2" in
 						logger "Connected to $essid on $mactest and conducting startup tasks." 
 						read line;
 						while [[ ! "$line" =~ "$separator" ]]; do
-							$line &
-							read line;								
+							if [[ ! "$line =~ "#" ]]; then
+								read line;								
+							else
+								$line &
+								read line;								
+							fi
 						done
 					fi
 				fi
