@@ -90,6 +90,7 @@ su -l USERNAME /command/to/execute
 in networkcontrol.conf
 
 
+
 ## WICD Installation 
 
 	mkdir -p ~/scripts
