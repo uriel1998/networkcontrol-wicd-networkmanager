@@ -6,22 +6,7 @@
 #   
 ########################################################################
 
-########################################################################
-# Variable Assignation
-########################################################################
-# $1 is the interface - though tempted to use interface=$(ip route | head -1 | awk '{print $5}')
-# don't do it.  Network-manager in particular likes reporting more than one active connection through iptools
-# $2 is up or down - passed by network-manager or the scripts provided
-# $3 is the essid of the wireless network if you're using WICD; we use iwgetid to backfill for network-manager
-
-interface="$1"
-if [ "$3" == "" ]; then
-	essid=$(iwgetid -r)
-else
-	essid="$3"
-fi
-
-
+init() {
 
 if [ ! -d "$TMPDIR" ]; then
 	scratch=$(mktemp)
@@ -31,22 +16,23 @@ fi
 delay=$(grep -m 1 -o "latencydelay .*" /etc/networkcontrol.conf | grep -o " .*" | cut -c 2-)
 separator=$(grep -m 1 -o "separator .*" /etc/networkcontrol.conf | grep -o " .*" | cut -c 2-)
 
-########################################################################
-# Checking for rapid disconnect and reconnect
-########################################################################
 
-if [ -f "$TMPDIR/networkcontrol.tmp" ]; then
-	sTwo=$(head -1 "$TMPDIR/networkcontrol.tmp")
-	sInterface=$(echo "$sTwo" | awk -F "$separator" '{print $2}')
-	sEssid=$(echo "$sTwo" | awk -F "$separator" '{print $3}')
-	sMAC=$(echo "$sTwo" | awk -F "$separator" '{print $4}')
-fi
+}
 
-case "$2" in 
-	########################################################################
-	# Taking Network Down
-	########################################################################
-	down)	
+
+rapid_cycle_check(){
+
+    if [ -f "$TMPDIR/networkcontrol.tmp" ]; then
+        sTwo=$(head -1 "$TMPDIR/networkcontrol.tmp")
+        sInterface=$(echo "$sTwo" | awk -F "$separator" '{print $2}')
+        sEssid=$(echo "$sTwo" | awk -F "$separator" '{print $3}')
+        sMAC=$(echo "$sTwo" | awk -F "$separator" '{print $4}')
+    fi
+
+}
+
+
+network_down() {
 		echo "$1 $sInterface"
 		if [ "$1" == "$sInterface" ]; then
 			logger "Beginning clean shutdown sequence."
@@ -71,26 +57,52 @@ case "$2" in
 						if [ "$line" == "@@shutdown" ];then
 							read line;
 							while [ "$line" != "" ]; do
-								if [[ ! "$line =~ "#" ]]; then
-									read line;								
-								else
-									$line &
-									read line;								
-								fi
 							done
 						fi
 					fi
-				done <~/etc/networkcontrol.conf 				
+
 				rm "$TMPDIR/networkcontrol.tmp"
 				logger "Clean shutdown sequence complete."
 				exit 0
 			else
 				logger "Network is up; controller is exiting."
-				exit 253
+				exit 
 			fi
-			# Error if there's nothing up; WICD calls this script multiple times, oddly.
 		fi
+}
+
+network_up(){
+    
+}
+
+
+########################################################################
+# Variable Assignation
+########################################################################
+# $1 is the interface - though tempted to use interface=$(ip route | head -1 | awk '{print $5}')
+# don't do it.  Network-manager in particular likes reporting more than one active connection through iptools
+# $2 is up or down - passed by network-manager or the scripts provided
+# $3 is the essid of the wireless network if you're using WICD; we use iwgetid to backfill for network-manager
+
+interface="$1"
+if [ "$3" == "" ]; then
+	essid=$(iwgetid -r)
+else
+	essid="$3"
+fi
+
+
+########################################################################
+# Checking for rapid disconnect and reconnect
+########################################################################
+
+case "$2" in 
+	########################################################################
+	# Taking Network Down
+	########################################################################
+	down)	
 		;;
+
 	########################################################################
 	# Putting Network Up
 	########################################################################		
