@@ -47,13 +47,13 @@ get_lan_ip (){
 }
 
 get_wan_ip_dig (){
-    result=$(dig +short myip.opendns.com @resolver1.opendns.com)
+    result=$(dig +short +tries=1 +time=1 myip.opendns.com @resolver1.opendns.com)
     if [ -z "$result" ];then
-        result=$(dig +short myip.opendns.com @resolver2.opendns.com)
+        result=$(dig +short +tries=1 +time=1 myip.opendns.com @resolver2.opendns.com)
         if [ -z "$result" ];then
-            result=$(dig +short myip.opendns.com @resolver3.opendns.com)
+            result=$(dig +short +tries=1 +time=1 myip.opendns.com @resolver3.opendns.com)
             if [ -z "$result" ];then
-                result=$(dig +short myip.opendns.com @resolver4.opendns.com)
+                result=$(dig +short +tries=1 +time=1 myip.opendns.com @resolver4.opendns.com)
             fi
         fi
     fi
@@ -72,29 +72,30 @@ get_wan_ip_dig (){
 
 get_wan_ip_3rdparty () {
 	result=$(curl --silent --connect-timeout .5 ipecho.net/plain)
-	if [ -n $result ]; then
-		WAN_IP="$result"
-	else
+    if [[ $result =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        WAN_IP="$result"
+    else
 		result=$(curl --silent --connect-timeout .5 ident.me)
-        if [ -n $result ]; then
+        if [[ $result =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             WAN_IP="$result"
-		else
+        else
             result=$(curl --silent --connect-timeout .5 checkip.amazonaws.com)
-            if [ -n $result ]; then
-        		WAN_IP="$result"
+            if [[ $result =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                WAN_IP="$result"
             else
                 result=$(curl --silent --connect-timeout .5 ifconfig.me)
-                if [ -n $result ]; then
+                if [[ $result =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
                     WAN_IP="$result"
                 else
                     result=$(curl --silent --connect-timeout .5 icanhazip.com)
-                    if [ -n $result ]; then
+                    if [[ $result =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
                         WAN_IP="$result"
                     else
                         result=$(curl --silent ifconfig.co)
-                        if [ -n $result ]; then
+                        if [[ $result =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
                             WAN_IP="$result"
-                            echo "$WAN_IP"
+                        else
+                            WAN_IP=""
                         fi
                     fi
                 fi
@@ -107,9 +108,9 @@ get_wan_ip_3rdparty () {
 main (){
     get_iface
     get_lan_ip "$IFACE"
-    get_wan_ip_dig
+    get_wan_ip_3rdparty
     if [ -z "$WAN_IP" ];then
-        get_wan_ip_3rdparty
+        get_wan_ip_dig
     fi
     get_gateway_mac
     get_ssid
