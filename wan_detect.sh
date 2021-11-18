@@ -15,10 +15,31 @@
 IFACE=""
 LAN_IP=""
 WAN_IP=""
+SSID=""
+GATEWAY_MAC=""
 
 get_iface (){
     # -m1 only matches the first - can put in a loop later to catch all
     IFACE=$(netstat -nr | grep -m1 ^0.0.0.0 | awk -F " " '{print $8}')
+}
+
+get_ssid (){
+    scratch=$(iwgetid -r)
+    if [ -n "$scratch" ];then
+        SSID="$scratch"
+    else
+        SSID=""
+    fi
+}
+
+get_gateway_mac (){
+    scratch=$(arp -n -a $(ip route show 0.0.0.0/0 | awk '{print $3}') | awk '{print $4}' | head -1)
+    result=$(echo "$scratch" | grep -o : | wc -l)
+    if [ $result = 5 ];then
+        GATEWAY_MAC="$scratch"
+    else
+        GATEWAY_MAC=""
+    fi
 }
 
 get_lan_ip (){
@@ -50,23 +71,23 @@ get_wan_ip_dig (){
 
 
 get_wan_ip_3rdparty () {
-	result=$(curl --silent ipecho.net/plain)
+	result=$(curl --silent --connect-timeout .5 ipecho.net/plain)
 	if [ -n $result ]; then
 		WAN_IP="$result"
 	else
-		result=$(curl --silent ident.me)
+		result=$(curl --silent --connect-timeout .5 ident.me)
         if [ -n $result ]; then
             WAN_IP="$result"
 		else
-            result=$(curl --silent checkip.amazonaws.com)
+            result=$(curl --silent --connect-timeout .5 checkip.amazonaws.com)
             if [ -n $result ]; then
         		WAN_IP="$result"
             else
-                result=$(curl --silent ifconfig.me)
+                result=$(curl --silent --connect-timeout .5 ifconfig.me)
                 if [ -n $result ]; then
                     WAN_IP="$result"
                 else
-                    result=$(curl --silent icanhazip.com)
+                    result=$(curl --silent --connect-timeout .5 icanhazip.com)
                     if [ -n $result ]; then
                         WAN_IP="$result"
                     else
@@ -83,9 +104,6 @@ get_wan_ip_3rdparty () {
 }
 
 
-
-
-
 main (){
     get_iface
     get_lan_ip "$IFACE"
@@ -93,6 +111,8 @@ main (){
     if [ -z "$WAN_IP" ];then
         get_wan_ip_3rdparty
     fi
+    get_gateway_mac
+    get_ssid
 
     if [ "$QUIET" = 3 ];then 
         if [ "$WAN_IP" != "" ];then
@@ -115,10 +135,14 @@ main (){
 
     if [ "$QUIET" = 1 ];then
         echo "$IFACE"
+        echo "$SSID"
+        echo "$GATEWAY_MAC"
         echo "$LAN_IP"
         echo "$WAN_IP"
     else    
         echo "Interface: $IFACE"
+        echo "SSID: $SSID"
+        echo "GATEWAY MAC: $GATEWAY_MAC"
         echo "LAN: $LAN_IP"
         echo "WAN: $WAN_IP"
     fi

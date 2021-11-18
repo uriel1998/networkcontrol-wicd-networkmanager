@@ -1,44 +1,17 @@
 #!/bin/bash
 
+#################################################################################
+#
+# This utility is to be able to easily and quickly return the network characteristics
+# I'm interested in for NMM.  Yes, you can do this by hand or by looking at interface loops. 
+# by Steven Saus
+#
+# Licensed under a MIT License
+#
+################################################################################
 
-show_help () {
- 
-    echo "network_detect.sh --[match|unmatch] [MAC address|SSID|html file]"
-    echo "exit code of 0 on success, 99 on fail. Also emits success|fail to STDOUT"
-    exit 1
-    
-}
-
-# is looking for positive match
-if [ "$1" == "--match" ]; then  
-    MatchType=True
-else 
-    if [ "$1" == "--unmatch" ]; then  
-        MatchType=False
-    else
-        show_help
-    fi
-fi
-
-
-scratch=$(echo "$2" | grep -o : | wc -l)
-
-if [ $scratch = 5 ];then
-    MatchMethod=MAC
-    MatchString="${2,,}"
-else
-    scratch=$(echo "$2" | grep -c "://")
-    if [ $scratch = 1 ];then
-        MatchMethod=URL
-        # cannot be tolowered, due to possible caps of URL
-        MatchString="$2"
-    else
-        MatchMethod=SSID
-        MatchString="${2,,}"
-    fi
-fi
-
-
+MAC=""
+SSID=""
 
 case "$MatchMethod" in 
     MAC)
