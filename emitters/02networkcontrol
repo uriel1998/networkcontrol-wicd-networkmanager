@@ -1,0 +1,21 @@
+#!/bin/bash
+
+
+########################################################################
+#
+# 	Network up/down notification for network-manager and WICD
+#   Literally just used to emit a call to another script in userspace so
+#   we drop root privileges ASAP; not passing anything; everything is in 
+#   userspace
+#   
+########################################################################
+
+case "$2" in
+
+    down)
+        ;;
+    up)
+        ;;
+
+# Edit this for obvs reasons to the nmm script
+sudo -u USERNAME bash -c 'whoami;echo $USER' # outputs USERNAME's user name twice

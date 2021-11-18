@@ -1,5 +1,13 @@
 #!/bin/bash
 
+#################################################################################
+#
+# This utility is to test if you're connected to the network you want to (or NOT connected) 
+# by Steven Saus
+#
+# Licensed under a MIT License
+#
+################################################################################
 
 show_help () {
  
