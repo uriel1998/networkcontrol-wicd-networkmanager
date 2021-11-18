@@ -12,10 +12,13 @@
 
 case "$2" in
 
-    down)
+    down)   
+        sudo -u USERNAME /usr/bin/bash -c 'whoami;echo $USER;/usr/local/bin/network-middle-manager down' # outputs USERNAME's user name twice
+
         ;;
-    up)
+    up) 
+        sudo -u USERNAME /usr/bin/bash -c 'whoami;echo $USER;/usr/local/bin/network-middle-manager down' # outputs USERNAME's user name twice
+
         ;;
 
 # Edit this for obvs reasons to the nmm script
-sudo -u USERNAME bash -c 'whoami;echo $USER' # outputs USERNAME's user name twice
