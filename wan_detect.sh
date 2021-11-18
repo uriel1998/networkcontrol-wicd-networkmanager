@@ -22,7 +22,7 @@ get_iface (){
 }
 
 get_lan_ip (){
-    LAN_IP=$(ip -4 addr show dev eno1 | grep inet | awk '{print $2}' | cut -d '/' -f 1)
+    LAN_IP=$(ip -4 addr show dev "$IFACE" | grep inet | awk '{print $2}' | cut -d '/' -f 1)
 }
 
 get_wan_ip_dig (){
@@ -38,7 +38,11 @@ get_wan_ip_dig (){
     fi
     # last sanity check
     if [ -n "$result" ];then
-        WAN_IP="$result"
+        if [[ $result =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            WAN_IP="$result"
+        else
+            WAN_IP=""
+        fi
     fi
 
     
@@ -86,7 +90,7 @@ main (){
     get_iface
     get_lan_ip "$IFACE"
     get_wan_ip_dig
-    if [ "$WAN_IP" == "" ];then
+    if [ -z "$WAN_IP" ];then
         get_wan_ip_3rdparty
     fi
 
