@@ -10,9 +10,7 @@
 #
 ########################################################################
 
-STATUS=""
 TRUSTED=""
-RUNNING=""
 SETUP=""
 MYPID=""
 MYSSID=""
@@ -65,11 +63,15 @@ run_trusted () {
     
 }
 
-determine_network_type () {
-    result=$("${SCRIPT_DIR}"/wan_detect.sh -q)
+determine_network_stats () {
     
-    # returns: interface\nSSID\nMAC\nLAN IP\nWAN IP"
-    # 
+    result=$("${SCRIPT_DIR}"/wan_detect.sh -q)
+    MYSSID=$(echo "$result" | sed '2!d')
+    GATEMAC=$(echo "$result" | sed '3!d')
+}
+
+determine_if_trusted () {
+    
 }
 
 run_disconnect () {
@@ -99,6 +101,8 @@ show_help () {
 flow_control () {
     case "$1" in
         -u) 
+            determine_network_stats
+            determine_if_trusted
             ;;
         -d) 
             run_disconnect
