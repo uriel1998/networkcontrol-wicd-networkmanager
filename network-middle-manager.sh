@@ -71,6 +71,17 @@ determine_network_stats () {
 }
 
 determine_if_trusted () {
+
+if grep -Fxq "$MYSSID" "$INIFILE"; then
+    TRUSTED="1"
+else
+    if grep -Fxq "$GATEMAC" "$INIFILE"; then
+        TRUSTED="1"
+    else
+        TRUSTED=""
+    fi
+fi
+
     
 }
 
@@ -103,6 +114,12 @@ flow_control () {
         -u) 
             determine_network_stats
             determine_if_trusted
+            if [ "$TRUSTED" == "1" ];then
+                run_trusted
+            else
+                run_untrusted
+            fi
+            exit 0
             ;;
         -d) 
             run_disconnect
