@@ -5,13 +5,127 @@
 #   Controls automatic operations on network connect or disconnect
 #   Operates in USERSPACE after shedding root privileges
 #
+#  (c) Steven Saus 2021
+#  Licensed under the MIT license
+#
 ########################################################################
 
-# should be put in /usr/local/bin/....
-# $1 is up/down
+STATUS=""
+TRUSTED=""
+RUNNING=""
+SETUP=""
+MYPID=""
+MYSSID=""
+GATEMAC=""
+INIFILE=""
+export SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
+
+
+# $1 is up/down OR SETUP
 # use wan_detect to feed current connection information into this script 
-# ensure is not already running!!! Only one copy running at a time!
 # if down, read ini for down conditions, do it, and exit
 # if up, see if any of the network attributes are in "trusted"
 # if not, execute "untrusted" 
 # otherwise execute "trusted"
+# Setup uses YAD and the template
+
+get_pid () {
+    MYPID=$(echo "$$")
+}
+
+is_already_running () {
+    if [ -f "${SCRIPT_DIR}"/nmm.pid ];then
+        echo "Network Middle Manager already running. There can be only one." 1>&2
+        exit 98
+    else
+        get_pid
+        echo "$MYPID" > "${SCRIPT_DIR}"/nmm.pid
+    fi
+}
+
+find_ini () {
+    if [ -f "$HOME"/.config/network-middle-manager.ini ];then
+        INIFILE="$HOME"/.config/network-middle-manager.ini
+    else
+        if [ -f "$SCRIPT_DIR"/network-middle-manager.ini ];then
+            INIFILE="$SCRIPT_DIR"/network-middle-manager.ini
+        else
+            echo "No INI file found in $HOME/.config or $SCRIPT_DIR!" 1>&2
+            exit 96
+        fi
+    fi
+}
+
+
+run_untrusted () {
+
+}
+
+run_trusted () {
+    
+}
+
+determine_network_type () {
+    result=$("${SCRIPT_DIR}"/wan_detect.sh -q)
+    
+    # returns: interface\nSSID\nMAC\nLAN IP\nWAN IP"
+    # 
+}
+
+run_disconnect () {
+    
+    #NOT YET SET UP FOR THIS PROGRAM; it's from bookmarker
+    modules=$(/usr/bin/ls -A "$SCRIPT_DIR/plugin_disconnect" | sed 's/.sh//g' | grep -v ".keep" | fzf --multi | sed 's/$/.sh&/p' | awk '!_[$0]++' )    
+    for p in $posters;do
+        if [ "$p" != ".keep" ];then 
+            echo "Processing ${p%.*}..."
+            send_funct=$(echo "${p%.*}_send")
+            source "$SCRIPT_DIR/out_enabled/$p"
+            echo "$SCRIPT_DIR/out_enabled/$p"
+            eval ${send_funct}
+            sleep 5
+        fi
+    done
+
+    
+}
+
+show_help () {
+    echo "Usage: network-middle-manager.sh [-u|-d|-s|-h]"
+    echo -e "-u: Network up\n-d: Network down\n-s: Execute setup\n-h: See this help"
+    exit
+}
+
+flow_control () {
+    case "$1" in
+        -u) 
+            ;;
+        -d) 
+            run_disconnect
+            exit 0
+            ;;
+        -s) 
+            ;;
+        -h) 
+            show_help
+            exit
+            ;;
+    
+}
+
+cleanup () {
+    if [ -f ${SCRIPT_DIR}/nmm.pid ];then
+        VPID=$(${SCRIPT_DIR}/nmm.pid)
+        if [ $VPID == $MYPID ];then
+            rm ${SCRIPT_DIR}/nmm.pid
+        fi
+    fi
+    exit 0
+}
+
+# main bit
+            
+is_already_running
+find_ini
+flow_control "$1"
+cleanup
