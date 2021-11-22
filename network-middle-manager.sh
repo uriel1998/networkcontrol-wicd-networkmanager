@@ -57,14 +57,34 @@ find_ini () {
 
 run_untrusted () {
 
+    modules=$(/usr/bin/ls -A "$SCRIPT_DIR/plugin_untrusted" | sed 's/.sh//g' | grep -v ".keep" | fzf --multi | sed 's/$/.sh&/p' | awk '!_[$0]++' )    
+    for m in $modules;do
+        if [ "$p" != ".keep" ];then 
+            echo "Processing ${p%.*}..."
+            run_funct=$(echo "${p%.*}_plugin")
+            source "$SCRIPT_DIR/plugin_untrusted/$p"
+            echo "$SCRIPT_DIR//plugin_untrusted/$p"
+            eval ${run_funct}
+        fi
+    done
+
 }
 
 run_trusted () {
+    modules=$(/usr/bin/ls -A "$SCRIPT_DIR/plugin_trusted" | sed 's/.sh//g' | grep -v ".keep" | fzf --multi | sed 's/$/.sh&/p' | awk '!_[$0]++' )    
+    for m in $modules;do
+        if [ "$p" != ".keep" ];then 
+            echo "Processing ${p%.*}..."
+            run_funct=$(echo "${p%.*}_plugin")
+            source "$SCRIPT_DIR/plugin_trusted/$p"
+            echo "$SCRIPT_DIR/plugin_trusted/$p"
+            eval ${run_funct}
+        fi
+    done
     
 }
 
 determine_network_stats () {
-    
     result=$("${SCRIPT_DIR}"/wan_detect.sh -q)
     MYSSID=$(echo "$result" | sed '2!d')
     GATEMAC=$(echo "$result" | sed '3!d')
@@ -86,21 +106,17 @@ fi
 }
 
 run_disconnect () {
-    
-    #NOT YET SET UP FOR THIS PROGRAM; it's from bookmarker
+
     modules=$(/usr/bin/ls -A "$SCRIPT_DIR/plugin_disconnect" | sed 's/.sh//g' | grep -v ".keep" | fzf --multi | sed 's/$/.sh&/p' | awk '!_[$0]++' )    
-    for p in $posters;do
+    for m in $modules;do
         if [ "$p" != ".keep" ];then 
             echo "Processing ${p%.*}..."
-            send_funct=$(echo "${p%.*}_send")
-            source "$SCRIPT_DIR/out_enabled/$p"
-            echo "$SCRIPT_DIR/out_enabled/$p"
-            eval ${send_funct}
-            sleep 5
+            run_funct=$(echo "${p%.*}_plugin")
+            source "$SCRIPT_DIR/plugin_disconnect/$p"
+            echo "$SCRIPT_DIR/plugin_disconnect/$p"
+            eval ${run_funct}
         fi
     done
-
-    
 }
 
 show_help () {

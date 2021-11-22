@@ -8,7 +8,7 @@
 #
 ##############################################################################
 
-function command_name {
+function command_name_plugin {
 
 local COMMAND=
 local ARGS=
