@@ -12,6 +12,8 @@ function command_name_plugin {
 
 local COMMAND=
 local ARGS=
+local commandstring=$(printf "%s %s" "$COMMAND" "$ARGS")
+eval "${commandstring}"
 
 }
 

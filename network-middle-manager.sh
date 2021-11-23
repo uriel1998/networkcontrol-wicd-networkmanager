@@ -63,7 +63,7 @@ run_untrusted () {
             echo "Processing ${p%.*}..."
             run_funct=$(echo "${p%.*}_plugin")
             source "$SCRIPT_DIR/plugin_untrusted/$p"
-            echo "$SCRIPT_DIR//plugin_untrusted/$p"
+            echo "$SCRIPT_DIR/plugin_untrusted/$p"
             eval ${run_funct}
         fi
     done
