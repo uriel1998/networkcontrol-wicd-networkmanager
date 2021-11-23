@@ -6,7 +6,7 @@
 #   Licensed under the MIT license
 #
 ########################################################################
-
+export SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
 # Name
 # command to run
 # args
