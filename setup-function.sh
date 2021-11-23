@@ -1,36 +1,20 @@
 #!/bin/bash
     
 ########################################################################
-#	Using YAD to make a quick todo-txt entry GUI
+#	Using YAD to make a quick setup for netocto Nmm, whatever i call it
 #   by Steven Saus (c)2021
 #   Licensed under the MIT license
 #
-#   First argument is the path to todo.txt if it's not already exported 
-#   as TODO_FILE.  Simply designed for quick entry.
-#   
-#   If the program is not running, ensure that it is getting the todo.txt 
-#   file passed to it!
-#
 ########################################################################
 
-ToDoTxtFile="$1"
+# Name
+# command to run
+# args
+# trusted, untrusted, down
+# why not use --file-selection?  Because that takes over the window.
+runupon="\!trusted\!untrusted\!disconnect"
 
-if [ ! -f "${ToDoTxtFile}" ];then
-    if [ -f "$TODO_FILE" ];then
-        ToDoTxtFile="$TODO_FILE"
-    else
-        exit 99
-    fi
-fi
-
-projects=$(cat "$ToDoTxtFile" | grep -e '\+' | awk -F '+' '{print $2}' | awk '{print $1}' | sort | uniq | tr '\n' '!' | sed 's/!/\\!/g')
-contexts=$(cat "$ToDoTxtFile" | grep -e '\@' | awk -F '@' '{print $2}' | awk '{print $1}' | sort | uniq | tr '\n' '!' | sed 's/!/\\!/g')
-projects=$(echo " \!${projects::-2}")
-contexts=$(echo " \!${contexts::-2}")
-priority=" \!A\!B\!C\!D\!E\!F\!G\!H\!I\!J\!K\!L\!M\!N\!O\!P\!Q\!R\!S\!T\!U\!V\!W\!X\!Y\!Z"
-blankentry=" \!"
-
-OutString=$(yad --form --title="todo.txt entry" --date-format="%Y:%m:%d" --width=400 --center --window-icon=gtk-info --borders 3 --field="Task" New_Task --field="Context:CBE" ${contexts} --field="Project:CBE" ${projects} --field="Priority:CBE" ${priority} --field="Due Date::DT" )
+OutString=$(yad --form --title="Configure NMM plugin" --width=400 --center --window-icon=gtk-info --borders 3 --field="Task" New_Task --field="Args" "" --field="ActionType:CBE" ${runupon})
 
 
 NewTask=$(echo "$OutString" | awk -F '|' '{print $1}') 
@@ -43,20 +27,37 @@ if [ "$NewTask" == "" ];then
     exit 88
 fi
 
-NewContext=$(echo "$OutString" | awk -F '|' '{print $2}') 
-if [ "$NewContext" != "" ];then
-    NewContext=$(echo "@$NewContext")
+NewArgs=$(echo "$OutString" | awk -F '|' '{print $2}') 
+
+NetType=$(echo "$OutString" | awk -F '|' '{print $3}')
+if [ "$NewType" != "" ];then
+    NewType=$(echo "+$NewProject")
+else   
+    echo "Action type not defined;exiting."
+    exit 88
 fi
-NewProject=$(echo "$OutString" | awk -F '|' '{print $3}')
-if [ "$NewProject" != "" ];then
-    NewProject=$(echo "+$NewProject")
+
+NameOfTask=$(basename "${NewTask}")
+
+cat ${SCRIPT_DIR}/template.txt | sed  "s@BASENAME@${NameOfTask}@g" | sed  "s@TASKNAME@${NewTask}@g" | sed  "s@TASKARGS@${NewArgs}@g" > ${SCRIPT_DIR}/${NetType}/${NameOfTask}.sh
+
+# This is the bare bones of the plugin to write out - FN should also be $NewTask.sh
+# So it's gotta cat test.txt | sed  "s@TASKNAME@${NewTask}@g"
+
+
+#!/bin/bash
+function ${NewTask}_plugin {
+local COMMAND=${NewTask}
+local ARGS=${NewArgs}
+local commandstring=$(printf "%s %s" "$COMMAND" "$ARGS")
+eval "${commandstring}"
+}
+
+$(return >/dev/null 2>&1)
+
+# What exit code did that give?
+if [ "$?" -eq "0" ];then
+    echo "[info] Function ready to go."
+else
+    echo -e "This is only meant to be sourced, mate."
 fi
-NewPriority=$(echo "$OutString" | awk -F '|' '{print $4}') 
-echo "$NewPriority"
-if [ "$NewPriority" != "" ];then
-    NewPriority=$(echo "($NewPriority)")
-fi
-NewDate=$(echo "$OutString" | awk -F '|' '{print $5}') 
-		
-TaskString=$(printf "/usr/bin/todo-txt add \"%s %s %s %s %s\"" "$NewTask" "$NewContext" "$NewProject" "$NewPriority" "$NewDate")
-eval "${TaskString}"
