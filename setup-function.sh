@@ -40,24 +40,3 @@ fi
 NameOfTask=$(basename "${NewTask}")
 
 cat ${SCRIPT_DIR}/template.txt | sed  "s@BASENAME@${NameOfTask}@g" | sed  "s@TASKNAME@${NewTask}@g" | sed  "s@TASKARGS@${NewArgs}@g" > ${SCRIPT_DIR}/${NetType}/${NameOfTask}.sh
-
-# This is the bare bones of the plugin to write out - FN should also be $NewTask.sh
-# So it's gotta cat test.txt | sed  "s@TASKNAME@${NewTask}@g"
-
-
-#!/bin/bash
-function ${NewTask}_plugin {
-local COMMAND=${NewTask}
-local ARGS=${NewArgs}
-local commandstring=$(printf "%s %s" "$COMMAND" "$ARGS")
-eval "${commandstring}"
-}
-
-$(return >/dev/null 2>&1)
-
-# What exit code did that give?
-if [ "$?" -eq "0" ];then
-    echo "[info] Function ready to go."
-else
-    echo -e "This is only meant to be sourced, mate."
-fi
