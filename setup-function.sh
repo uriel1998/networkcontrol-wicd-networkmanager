@@ -30,9 +30,7 @@ fi
 NewArgs=$(echo "$OutString" | awk -F '|' '{print $2}') 
 
 NetType=$(echo "$OutString" | awk -F '|' '{print $3}')
-if [ "$NewType" != "" ];then
-    NewType=$(echo "+$NewProject")
-else   
+if [ "$NetType" == "" ];then
     echo "Action type not defined;exiting."
     exit 88
 fi
