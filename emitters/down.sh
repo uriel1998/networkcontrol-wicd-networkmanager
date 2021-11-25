@@ -5,4 +5,4 @@
 
 # The placeholder should stay as PLACEHOLDER - it literally is one
 
-/PATH/TO/02networkcontrol PLACEHOLDER down &
+/etc/NetworkManager/dispatcher.d/02networkcontrol PLACEHOLDER down &
