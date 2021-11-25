@@ -57,7 +57,7 @@ find_ini () {
 
 run_untrusted () {
 
-    modules=$(/usr/bin/ls -A "$SCRIPT_DIR/plugin_untrusted" | sed 's/.sh//g' | grep -v ".keep" | fzf --multi | sed 's/$/.sh&/p' | awk '!_[$0]++' )    
+    modules=$(/usr/bin/find "$SCRIPT_DIR/plugin_untrusted" -type f| sed 's/.sh//g' | grep -v ".keep" | sed 's/$/.sh&/p' | awk '!_[$0]++' )    
     for m in $modules;do
         if [ "$p" != ".keep" ];then 
             echo "Processing ${p%.*} for UNtrusted network"
@@ -71,7 +71,7 @@ run_untrusted () {
 }
 
 run_trusted () {
-    modules=$(/usr/bin/ls -A "$SCRIPT_DIR/plugin_trusted" | sed 's/.sh//g' | grep -v ".keep" | fzf --multi | sed 's/$/.sh&/p' | awk '!_[$0]++' )    
+    modules=$(/usr/bin/find "$SCRIPT_DIR/plugin_trusted" -type f| sed 's/.sh//g' | grep -v ".keep" | sed 's/$/.sh&/p' | awk '!_[$0]++' )    
     for m in $modules;do
         if [ "$p" != ".keep" ];then 
             echo "Processing ${p%.*} for trusted network"
@@ -107,7 +107,7 @@ fi
 
 run_disconnect () {
 
-    modules=$(/usr/bin/ls -A "$SCRIPT_DIR/plugin_disconnect" | sed 's/.sh//g' | grep -v ".keep" | fzf --multi | sed 's/$/.sh&/p' | awk '!_[$0]++' )    
+    modules=$(/usr/bin/find "$SCRIPT_DIR/plugin_disconnect" -type f | sed 's/.sh//g' | grep -v ".keep" | sed 's/$/.sh&/p' | awk '!_[$0]++' )    
     for m in $modules;do
         if [ "$p" != ".keep" ];then 
             echo "Processing ${p%.*} for disconnection"

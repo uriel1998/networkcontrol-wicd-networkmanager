@@ -128,3 +128,4 @@ connection or disconnection as the user you defined.
 
  * Have wan_detect be able to deal with multiple simultaneous connections.
  * Actually use the latency bit.
+ * the .keep files are literally so the empty directories exist; maybe set those up instead?
