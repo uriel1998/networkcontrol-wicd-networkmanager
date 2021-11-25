@@ -147,7 +147,7 @@ flow_control () {
             show_help
             exit
             ;;
-    
+    esac
 }
 
 cleanup () {
