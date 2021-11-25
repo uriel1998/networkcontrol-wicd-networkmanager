@@ -57,13 +57,15 @@ find_ini () {
 
 run_untrusted () {
 
-    modules=$(/usr/bin/find "$SCRIPT_DIR/plugin_untrusted" -type f| sed 's/.sh//g' | grep -v ".keep" | sed 's/$/.sh&/p' | awk '!_[$0]++' )    
+    modules=$(/usr/bin/find "$SCRIPT_DIR/plugin_untrusted" -type f | sed 's/.sh//g' | grep -v ".keep" | sed 's/$/.sh&/p' | awk '!_[$0]++' )    
+
     for m in $modules;do
-        if [ "$p" != ".keep" ];then 
-            echo "Processing ${p%.*} for UNtrusted network"
-            run_funct=$(echo "${p%.*}_plugin")
-            source "$SCRIPT_DIR/plugin_untrusted/$p"
-            echo "$SCRIPT_DIR/plugin_untrusted/$p"
+        modulename=$(basename "$m")
+        if [ "$m" != ".keep" ];then 
+            echo "Processing ${modulename%.*} for UNtrusted network"
+            run_funct=$(echo "${modulename%.*}_plugin")
+            source "$m"
+            echo "$m"
             eval ${run_funct}
         fi
     done
@@ -71,17 +73,19 @@ run_untrusted () {
 }
 
 run_trusted () {
+
     modules=$(/usr/bin/find "$SCRIPT_DIR/plugin_trusted" -type f| sed 's/.sh//g' | grep -v ".keep" | sed 's/$/.sh&/p' | awk '!_[$0]++' )    
     for m in $modules;do
-        if [ "$p" != ".keep" ];then 
-            echo "Processing ${p%.*} for trusted network"
-            run_funct=$(echo "${p%.*}_plugin")
-            source "$SCRIPT_DIR/plugin_trusted/$p"
-            echo "$SCRIPT_DIR/plugin_trusted/$p"
+        modulename=$(basename "$m")
+        if [ "$m" != ".keep" ];then 
+            echo "Processing ${modulename%.*} for trusted network"
+            run_funct=$(echo "${modulename%.*}_plugin")
+            source "$m"
+            echo "$m"
             eval ${run_funct}
         fi
     done
-    
+   
 }
 
 determine_network_stats () {
@@ -109,11 +113,12 @@ run_disconnect () {
 
     modules=$(/usr/bin/find "$SCRIPT_DIR/plugin_disconnect" -type f | sed 's/.sh//g' | grep -v ".keep" | sed 's/$/.sh&/p' | awk '!_[$0]++' )    
     for m in $modules;do
-        if [ "$p" != ".keep" ];then 
-            echo "Processing ${p%.*} for disconnection"
-            run_funct=$(echo "${p%.*}_plugin")
-            source "$SCRIPT_DIR/plugin_disconnect/$p"
-            echo "$SCRIPT_DIR/plugin_disconnect/$p"
+        modulename=$(basename "$m")
+        if [ "$m" != ".keep" ];then 
+            echo "Processing ${modulename%.*} for disconnection"
+            run_funct=$(echo "${modulename%.*}_plugin")
+            source "$m"
+            echo "$m"
             eval ${run_funct}
         fi
     done
@@ -135,24 +140,21 @@ flow_control () {
             else
                 run_untrusted
             fi
-            exit 0
             ;;
         -d) 
             run_disconnect
-            exit 0
             ;;
         -s) 
             ;;
         -h) 
             show_help
-            exit
             ;;
     esac
 }
 
 cleanup () {
     if [ -f ${SCRIPT_DIR}/nmm.pid ];then
-        VPID=$(${SCRIPT_DIR}/nmm.pid)
+        VPID=$(head -1 ${SCRIPT_DIR}/nmm.pid)
         if [ $VPID == $MYPID ];then
             rm ${SCRIPT_DIR}/nmm.pid
         fi
