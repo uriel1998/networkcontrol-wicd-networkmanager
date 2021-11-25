@@ -11,7 +11,6 @@
 ########################################################################
 
 TRUSTED=""
-SETUP=""
 MYPID=""
 MYSSID=""
 GATEMAC=""
@@ -63,10 +62,9 @@ run_untrusted () {
         modulename=$(basename "$m")
         if [ "$m" != ".keep" ];then 
             echo "Processing ${modulename%.*} for UNtrusted network"
-            run_funct=$(echo "${modulename%.*}_plugin")
+            run_funct="${modulename%.*}_plugin"
             source "$m"
-            echo "$m"
-            eval ${run_funct}
+            eval "${run_funct}"
         fi
     done
 
@@ -79,10 +77,9 @@ run_trusted () {
         modulename=$(basename "$m")
         if [ "$m" != ".keep" ];then 
             echo "Processing ${modulename%.*} for trusted network"
-            run_funct=$(echo "${modulename%.*}_plugin")
+            run_funct="${modulename%.*}_plugin"
             source "$m"
-            echo "$m"
-            eval ${run_funct}
+            eval "${run_funct}"
         fi
     done
    
@@ -116,10 +113,9 @@ run_disconnect () {
         modulename=$(basename "$m")
         if [ "$m" != ".keep" ];then 
             echo "Processing ${modulename%.*} for disconnection"
-            run_funct=$(echo "${modulename%.*}_plugin")
+            run_funct="${modulename%.*}_plugin"
             source "$m"
-            echo "$m"
-            eval ${run_funct}
+            eval "${run_funct}"
         fi
     done
 }
@@ -153,10 +149,10 @@ flow_control () {
 }
 
 cleanup () {
-    if [ -f ${SCRIPT_DIR}/nmm.pid ];then
-        VPID=$(head -1 ${SCRIPT_DIR}/nmm.pid)
-        if [ $VPID == $MYPID ];then
-            rm ${SCRIPT_DIR}/nmm.pid
+    if [ -f "${SCRIPT_DIR}"/nmm.pid ];then
+        VPID=$(head -1 "${SCRIPT_DIR}"/nmm.pid)
+        if [ "$VPID" == "$MYPID" ];then
+            rm "${SCRIPT_DIR}"/nmm.pid
         fi
     fi
     exit 0
