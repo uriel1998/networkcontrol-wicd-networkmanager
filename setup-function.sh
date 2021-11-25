@@ -37,4 +37,4 @@ fi
 
 NameOfTask=$(basename "${NewTask}")
 
-cat ${SCRIPT_DIR}/template.txt | sed  "s@BASENAME@${NameOfTask}@g" | sed  "s@TASKNAME@${NewTask}@g" | sed  "s@TASKARGS@${NewArgs}@g" > ${SCRIPT_DIR}/${NetType}/${NameOfTask}.sh
+cat ${SCRIPT_DIR}/template.txt | sed  "s@BASENAME@${NameOfTask}@g" | sed  "s@TASKNAME@${NewTask}@g" | sed  "s@TASKARGS@${NewArgs}@g" > ${SCRIPT_DIR}/plugin_${NetType}/${NameOfTask}.sh

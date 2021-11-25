@@ -10,15 +10,17 @@
 #   
 ########################################################################
 
+
+# Edit this for obvs reasons to the nmm script
+
 case "$2" in
 
     down)   
-        sudo -u USERNAME /usr/bin/bash -c 'whoami;echo $USER;/usr/local/bin/network-middle-manager down' # outputs USERNAME's user name twice
+        sudo -u USERNAME --pty -c '/PATH/TO/network-middle-manager -d' 
 
         ;;
     up) 
-        sudo -u USERNAME /usr/bin/bash -c 'whoami;echo $USER;/usr/local/bin/network-middle-manager down' # outputs USERNAME's user name twice
-
+        sudo -u USERNAME --pty  -c '/PATH/TO/network-middle-manager -u' 
         ;;
 
-# Edit this for obvs reasons to the nmm script
+
