@@ -1,0 +1,28 @@
+#!/bin/bash
+
+
+########################################################################
+#
+# 	Network up/down notification for network-manager and WICD
+#   Literally just used to emit a call to another script in userspace so
+#   we drop root privileges ASAP; not passing anything; everything is in 
+#   userspace
+#   
+########################################################################
+
+
+# Edit this for obvs reasons to the nmm script
+
+case "$2" in
+
+    connectivity-change)   
+		su USER -c '/PATH/TO/network-middle-manager.sh -c' 
+        ;;	
+    down)   
+		su USER -c '/PATH/TO/network-middle-manager.sh -d' 
+        ;;
+    up) 
+        su USER -c '/PATH/TO/networkcontrol-wicd-networkmanager/network-middle-manager.sh -u' 
+        ;;
+esac
+

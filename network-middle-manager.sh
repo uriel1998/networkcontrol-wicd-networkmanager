@@ -17,6 +17,7 @@ GATEMAC=""
 INIFILE=""
 COMMAND=""
 MYIFACE=""
+LATENCY=""
 export SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
 
 
@@ -52,6 +53,10 @@ find_ini () {
             echo "No INI file found in $HOME/.config or $SCRIPT_DIR!" 1>&2
             exit 96
         fi
+    fi
+    LATENCY=$(cat "$INIFILE" | grep "latency" | awk -F '=' '{print $2}')
+    if [ -n "$LATENCY" ];then
+        LATENCY=10
     fi
 }
 
@@ -96,7 +101,7 @@ determine_network_stats () {
 
 determine_if_trusted () {
 
-TRUSTED=""
+    TRUSTED=""
 
     if grep -Fxq "MAC=$GATEMAC" "$INIFILE"; then
         echo "MAC found"
@@ -109,8 +114,7 @@ TRUSTED=""
             TRUSTED=""
         fi
     fi
-
-    
+  
 }
 
 run_disconnect () {
@@ -135,23 +139,40 @@ show_help () {
 
 flow_control () {
     case "$1" in
+    
+        # Network Manager will issue "connectivity-change" if it's an auto switch 
+        # instead of selecting "up".
         -c|connectivity-change)
             determine_network_stats
             if [ "$MYIFACE" == "" ];then
-                if last command down
+                if [ $(head -1 "${SCRIPT_DIR}"/nmm_status) == "down" ];then
                     exit
                 else
-                    do disconnect
+                    is_already_running
+                    echo "down" > "${SCRIPT_DIR}"/nmm_status
+                    run_disconnect
+                fi
             else
-                if last command down
-                    do up
-                    
-
+                if [ $(head -1 "${SCRIPT_DIR}"/nmm_status) == "down" ];then
+                    sleep "$LATENCY"
+                    determine_network_stats
+                    determine_if_trusted
+                    if [ "$TRUSTED" == "1" ];then
+                        echo "Running trusted tasks"
+                        echo "up" > "${SCRIPT_DIR}"/nmm_status
+                        run_trusted
+                    else
+                        echo "Running untrusted tasks"
+                        echo "up" > "${SCRIPT_DIR}"/nmm_status
+                        run_untrusted
+                    fi
+                fi
+            fi
+            ;;
         -u|up) 
-            sleep 10
             while [ -f "${SCRIPT_DIR}"/nmm_down.pid ];do
-                echo "sleeping"
-                sleep 5    
+                echo "Waiting"
+                sleep "$LATENCY"
             done
             COMMAND="up"
             is_already_running
@@ -161,15 +182,18 @@ flow_control () {
             determine_if_trusted
             if [ "$TRUSTED" == "1" ];then
                 echo "Running trusted tasks"
+                echo "up" > "${SCRIPT_DIR}"/nmm_status
                 run_trusted
             else
                 echo "Running untrusted tasks"
+                echo "up" > "${SCRIPT_DIR}"/nmm_status
                 run_untrusted
             fi
             ;;
         -d|down) 
             COMMAND="down"
             is_already_running
+            echo "down" > "${SCRIPT_DIR}"/nmm_status
             run_disconnect
             ;;
         -h) 

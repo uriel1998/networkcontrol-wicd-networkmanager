@@ -1,11 +1,12 @@
 # networkcontrol-wicd-networkmanager
 ==================================
 
-A program to automagically run commands in userspace on network connection and disconnection.  Written to work with both WICD and Network-Manager
+A program to automagically call (and shut down) network utilities like Dropbox and traffic shaping programs.  Written to work with both WICD and Network-Manager
 
-This originally started with [this](http://ideatrash.net/2013/10/getting-auto-login-window-on-public.html) and has grown into something quite a big larger, and then totally rewritten in 2021 to be a LOT simpler and more effective.
+This originally started with this and has grown into something quite a big larger.
+<http://ideatrash.net/2013/10/getting-auto-login-window-on-public.html>
+<https://gist.github.com/uriel1998/6942365>
 
-I like this little octopus.  I imagine him being our manager.  
 
 ## Contents
  1. [About](#1-about)
