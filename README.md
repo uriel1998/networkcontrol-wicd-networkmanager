@@ -5,7 +5,10 @@ A program to automagically run commands in userspace on network connection and d
 
 This originally started with [this](http://ideatrash.net/2013/10/getting-auto-login-window-on-public.html) and has grown into something quite a big larger, and then totally rewritten in 2021 to be a LOT simpler and more effective.
 
-I like this little octopus.  I imagine him being our manager.  
+I like this little octopus.  I imagine them being our manager. You cannot pronouce their name with a human tongue, sorry.
+
+![network middle manager logo](https://github.com/uriel1998/networkcontrol-wicd-networkmanager/blob/master/nmm-open-graph.png "logo")
+
 
 ## Contents
  1. [About](#1-about)
@@ -19,6 +22,25 @@ I like this little octopus.  I imagine him being our manager.
  
 ## 1. About
 
+`network-middle-manager`:
+* is focused on running tasks on network change
+* runs tasks *in userspace*, not as root
+* assumes *all* networks are **untrusted** unless explictly configured otherwise
+* works with both `network-manager` and `wicd`
+* uses a simple "plugin" style system for you to define what tasks to do where
+* uses YAD to provide an (optional) simple GUI to add tasks
+
+You're traveling for the holidays.  You're at a coffeeshop.  And so on.  You connect 
+to different networks, and want to spin up (or down) various processes depending 
+on what network you've connected to, and whether or not you trust them.
+
+That's what `network-middle-manager` does.
+
+This is written in the spirit of [Cuttlefish](https://www.debugpoint.com/2015/02/cuttlefish-an-event-driven-ubuntu-app-that-realises-reflexes-on-your-computer/) was an ambitious (and needed!) automation driver for linux...which hasn't been updated for a decade and doesn't currently run/compile on my system.
+
+I had written a very kludgy, very awkward script that kind of handled that, but 
+it was so bad and flaky that even I didn't use it much.  So I've rewritten it 
+entirely.  
 
 ## 2. License
 
@@ -60,8 +82,6 @@ wish to use this, copy it to `/etc/NetworkManager/dispatcher.d/` and then
 * `sudo chown root:root /etc/NetworkManager/dispatcher.d/50-disable-wireless-when-wired`
 * `sudo chmod +x /etc/NetworkManager/dispatcher.d/50-disable-wireless-when-wired`
 
-
-
 ### network-middle-manager.ini
 
 The format is simple; all networks are considered **UN**trusted except for the 
@@ -90,6 +110,8 @@ MAC=1a:2b:3c:4d:5e:6f
 
 This part requires `YAD`, or manually editing files. 
 
+![setup screenshot](https://github.com/uriel1998/networkcontrol-wicd-networkmanager/blob/master/setup_screeshot.png?raw=true "screenshot")
+
 All actions are designed to happen in *userspace*.  Run `setup-function.sh` in 
 the directory where you placed `network-middle-manager`.  Put the full path to 
 the command you wish to run, any arguments on the next line, and use the dropdown 
@@ -106,6 +128,8 @@ Args: connect
 ActionType: untrusted
 ```
 
+![setup screenshot 1](https://github.com/uriel1998/networkcontrol-wicd-networkmanager/blob/master/setup_1.png?raw=true "Setup 1")
+
 My second is 
 
 ```
@@ -113,6 +137,7 @@ Task: /usr/local/bin/piactl
 Args: disconnect
 ActionType: disconnect
 ```
+![setup screenshot 2](https://github.com/uriel1998/networkcontrol-wicd-networkmanager/blob/master/setup_2.png?raw=true "Setup 2")
 
 This creates the plugins using the `template.txt` file and puts them in the right 
 directory.  If you decide to manually create these, BASENAME is the basename of 
@@ -132,7 +157,7 @@ by issuing the command `/usr/local/bin/piactl background enable` beforehand.
 
 ## 5. Usage
 
-Relog or reboot to make sure that network-manager or wicd is aware of the new 
+Restart network-manager to make sure that network-manager or wicd is aware of the new 
 scripts. `network-middle-manager` will run the commands you told it to on network 
 connection or disconnection as the user you defined. 
 
@@ -142,7 +167,33 @@ You *will* see `nmm_status` appear in the application directory. This is because
 of the way `network-manager` handles connection changes (e.g. when you plug an 
 ethernet cable into a system that's running on wireless).
 
+### Utilities
+
+There are two additional utility scripts that are used with `network-middle-manager` that 
+can be used standalone as well:
+
+* `network_detect.sh`:  Checks if you're connected to a network with the defined 
+properties and both returns an exit code of 0 (success) or 99 (fail) and emits success|fail to STDOUT.
+
+`network_detect.sh --[match|unmatch] [MAC address|SSID|html file]`
+
+Example:  
+
+`network_detect.sh --match "http://10.10.1.5/default.html"`
+`network_detect.sh --unmatch MySSID`
+    
+* `wan_detect.sh`: Gives you information quickly about active interfaces. It checks for 
+the first active interface, LAN ip4 address, and WAN ip4 address.  It also checks 
+the WAN address multiple ways if others fail.
+
+```
+ -q : No headers on output.
+ -s : Only the WAN ip, and exit code 99 if fail, 0 if success
+ -v : Only the exit code 99 if fail, 0 if success
+```
+Example: `result=$(./wan_detect.sh -v; echo $?); if [ $result -eq 0 ];then ... ; fi`
+
 ## 6. Todo
 
  * Have wan_detect be able to deal with multiple simultaneous connections.
- * the .keep files are literally so the empty directories exist; maybe set those up instead?
+ * the .keep files are literally so the empty directories exist in the repo.
