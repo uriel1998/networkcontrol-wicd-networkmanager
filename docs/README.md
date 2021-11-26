@@ -36,11 +36,14 @@ on what network you've connected to, and whether or not you trust them.
 
 That's what `network-middle-manager` does.
 
-This is written in the spirit of [Cuttlefish](https://www.debugpoint.com/2015/02/cuttlefish-an-event-driven-ubuntu-app-that-realises-reflexes-on-your-computer/) was an ambitious (and needed!) automation driver for linux...which hasn't been updated for a decade and doesn't currently run/compile on my system.
+This is written in the spirit of [Cuttlefish](https://www.debugpoint.com/2015/02/cuttlefish-an-event-driven-ubuntu-app-that-realises-reflexes-on-your-computer/) 
+was an ambitious (and needed!) automation driver for linux...which hasn't been 
+updated for a decade and doesn't currently run/compile on my system. 
 
 I had written a very kludgy, very awkward script that kind of handled that, but 
 it was so bad and flaky that even I didn't use it much.  So I've rewritten it 
-entirely.  
+entirely. It's in BASH so that it hopefully is more resistant to bitrot and is 
+easily hackable by others.
 
 ## 2. License
 
@@ -196,9 +199,10 @@ properties and both returns an exit code of 0 (success) or 99 (fail) and emits s
 `network_detect.sh --[match|unmatch] [MAC address|SSID|html file]`
 
 Example:  
-
-`network_detect.sh --match "http://10.10.1.5/default.html"`
-`network_detect.sh --unmatch MySSID`
+```
+network_detect.sh --match "http://10.10.1.5/default.html"  
+network_detect.sh --unmatch MySSID
+```
     
 * `wan_detect.sh`: Gives you information quickly about active interfaces. It checks for 
 the first active interface, LAN ip4 address, and WAN ip4 address.  It also checks 
