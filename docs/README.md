@@ -1,13 +1,13 @@
 # network-middle-manager
 ==================================
 
-A program to automagically run commands in userspace on network connection and disconnection.  Written to work with both WICD and Network-Manager
+A bash program to automagically run commands in userspace on network connection and disconnection.  Written to work with both WICD and Network-Manager
 
 This originally started with [this](http://ideatrash.net/2013/10/getting-auto-login-window-on-public.html) and has grown into something quite a big larger, and then totally rewritten in 2021 to be a LOT simpler and more effective.
 
 I like this little octopus.  I imagine them being our manager. You cannot pronouce their name with a human tongue, sorry.
 
-![network middle manager logo](https://github.com/uriel1998/networkcontrol-wicd-networkmanager/blob/master/nmm-open-graph.png "logo")
+![network middle manager logo](https://github.com/uriel1998/networkcontrol-wicd-networkmanager/blob/master/nmm-open-graph.png?raw=true "logo")
 
 
 ## Contents
