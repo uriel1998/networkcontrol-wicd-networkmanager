@@ -15,6 +15,8 @@ MYPID=""
 MYSSID=""
 GATEMAC=""
 INIFILE=""
+COMMAND=""
+MYIFACE=""
 export SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
 
 
@@ -31,12 +33,12 @@ get_pid () {
 }
 
 is_already_running () {
-    if [ -f "${SCRIPT_DIR}"/nmm.pid ];then
+    if [ -f "${SCRIPT_DIR}"/nmm_"$COMMAND".pid ];then
         echo "Network Middle Manager already running. There can be only one." 1>&2
         exit 98
     else
         get_pid
-        echo "$MYPID" > "${SCRIPT_DIR}"/nmm.pid
+        echo "$MYPID" > "${SCRIPT_DIR}"/nmm_"$COMMAND".pid
     fi
 }
 
@@ -87,21 +89,26 @@ run_trusted () {
 
 determine_network_stats () {
     result=$("${SCRIPT_DIR}"/wan_detect.sh -q)
+    MYIFACE=$(echo "$result" | sed '1!d')
     MYSSID=$(echo "$result" | sed '2!d')
     GATEMAC=$(echo "$result" | sed '3!d')
 }
 
 determine_if_trusted () {
 
-if grep -Fxq "$MYSSID" "$INIFILE"; then
-    TRUSTED="1"
-else
-    if grep -Fxq "$GATEMAC" "$INIFILE"; then
+TRUSTED=""
+
+    if grep -Fxq "MAC=$GATEMAC" "$INIFILE"; then
+        echo "MAC found"
         TRUSTED="1"
     else
-        TRUSTED=""
+        if grep -Fxq "SSID=$MYSSID" "$INIFILE"; then
+            echo "SSID found"
+            TRUSTED="1"
+        else
+            TRUSTED=""
+        fi
     fi
-fi
 
     
 }
@@ -128,31 +135,55 @@ show_help () {
 
 flow_control () {
     case "$1" in
-        -u) 
+        -c|connectivity-change)
+            determine_network_stats
+            if [ "$MYIFACE" == "" ];then
+                if last command down
+                    exit
+                else
+                    do disconnect
+            else
+                if last command down
+                    do up
+                    
+
+        -u|up) 
+            sleep 10
+            while [ -f "${SCRIPT_DIR}"/nmm_down.pid ];do
+                echo "sleeping"
+                sleep 5    
+            done
+            COMMAND="up"
+            is_already_running
+            echo "About to run connection tasks."
+            
             determine_network_stats
             determine_if_trusted
             if [ "$TRUSTED" == "1" ];then
+                echo "Running trusted tasks"
                 run_trusted
             else
+                echo "Running untrusted tasks"
                 run_untrusted
             fi
             ;;
-        -d) 
+        -d|down) 
+            COMMAND="down"
+            is_already_running
             run_disconnect
-            ;;
-        -s) 
             ;;
         -h) 
             show_help
+            exit
             ;;
     esac
 }
 
 cleanup () {
-    if [ -f "${SCRIPT_DIR}"/nmm.pid ];then
-        VPID=$(head -1 "${SCRIPT_DIR}"/nmm.pid)
+    if [ -f "${SCRIPT_DIR}"/nmm_"$COMMAND".pid ];then
+        VPID=$(head -1 "${SCRIPT_DIR}"/nmm_"$COMMAND".pid)
         if [ "$VPID" == "$MYPID" ];then
-            rm "${SCRIPT_DIR}"/nmm.pid
+            rm "${SCRIPT_DIR}"/nmm_"$COMMAND".pid
         fi
     fi
     exit 0
@@ -160,7 +191,7 @@ cleanup () {
 
 # main bit
             
-is_already_running
+
 find_ini
 flow_control "$1"
 cleanup
