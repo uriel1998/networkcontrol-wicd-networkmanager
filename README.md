@@ -1,4 +1,4 @@
-# networkcontrol-wicd-networkmanager
+# network-middle-manager
 ==================================
 
 A program to automagically run commands in userspace on network connection and disconnection.  Written to work with both WICD and Network-Manager
@@ -50,9 +50,16 @@ This project is licensed under the MIT license. For the full license, see `LICEN
 
 ### These may already be installed on your system.
 
+* `network-manager` or `wicd`
+* `curl`, `wget`, `awk`, `sed`, `sleep`, `grep`
+* `arp`, `netstat` (From `net-tools` in Debian)
+* `dig` (From `bind9-dnsutils` in Debian)
+* `iwgetid` (From `wireless-tools` in Debian)
+* `ip` (From `iproute2` in Debian)
 
 ### Optional
 
+* [yad](https://smokey01.com/yad/) for GUI task setup, from `yad` in Debian
 
 ## 4. Installation
 
