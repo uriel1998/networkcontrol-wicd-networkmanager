@@ -92,17 +92,21 @@ wish to use this, copy it to `/etc/NetworkManager/dispatcher.d/` and then
 ### network-middle-manager.ini
 
 The format is simple; all networks are considered **UN**trusted except for the 
-ones you mark as trusted.  Trusted networks can be identified either by the 
-SSID or the MAC address of the gateway.  `wan_detect.sh` will give you that 
-information for the **first** connected network.  (Network Manager will connect 
-to both a wired and wireless connection at the same time.)  The gateway MAC 
-address should not change, even if you have a VPN running.  
+ones you mark as trusted.  Therefore, the simplest setup is to leave everything 
+under "Trusted" blank.
+
+Trusted networks can be identified either by the SSID or the MAC address of 
+the gateway.  `wan_detect.sh` will give you that information for the **first** 
+connected network.  (Network Manager will connect to both a wired and wireless 
+connection at the same time unless you use the optional `50-disable-wireless-when-wired`.)  
+The gateway MAC address should not change, even if you have a VPN running.  
 
 `latency` is used for a delay when you're *switching* networks - say from wireless 
 to wired - so that the up commands do not conflict with the down commands. Default 
 is 10 seconds.
 
-**IMPORTANT** Do not have any extra blank SSID or MAC lines
+**IMPORTANT** Do not have any lines that START with `SSID=` or `MAC=` and nothing 
+after the equals sign for security reasons.  
 
 ```
 [DEFAULT]
@@ -151,13 +155,20 @@ directory.  If you decide to manually create these, BASENAME is the basename of
 the command, TASKNAME and TASKARGS are hopefully obvious, and they should be 
 copied into the appropriate plugin directory.
 
-This *will* fail if you have multiple commands with the same command (e.g. `/bin/bash`),
-so in that case I recommend making (or using) a script with the commands with the 
-same base command name to run.  It's all in userspace, so it's up to you!
+### Multiple instances of the same command per network condition
+
+This *will* fail if you have multiple commands with the same command for the 
+same network condition.  That is, you cannot have two "trusted" actions with the 
+command `/bin/bash`.  
+
+In that case, making (or using) a script that has the commands you want with the 
+same base command name.  It's all in your userspace, so hack away!
 
 Likewise, if you have a script that you need to run as another user (or root), 
 (such as my [script for UFW](https://uriel1998.github.io/ufw-iptables-archer/)), 
 contain that inside another script as well.  
+
+### Note about PIA
 
 Note: PIA requires either the applet running or for you to have the daemon running 
 by issuing the command `/usr/local/bin/piactl background enable` beforehand. 
