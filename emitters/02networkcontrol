@@ -15,14 +15,12 @@
 
 case "$2" in
 
-    connectivity-change)   
-		su USER -c '/PATH/TO/network-middle-manager.sh -c' 
-        ;;	
     down)   
-		su USER -c '/PATH/TO/network-middle-manager.sh -d' 
+        sudo -u USERNAME --pty -c '/PATH/TO/network-middle-manager -d' 
+
         ;;
     up) 
-        su USER -c '/PATH/TO/networkcontrol-wicd-networkmanager/network-middle-manager.sh -u' 
+        sudo -u USERNAME --pty  -c '/PATH/TO/network-middle-manager -u' 
         ;;
-esac
+
 
